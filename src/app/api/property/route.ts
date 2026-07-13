@@ -21,14 +21,22 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
-  const property = await createProperty({
-    name: body.name,
-    address: body.address ?? "",
-    city: body.city ?? "",
-    glaSqft: Number(body.glaSqft) || 0,
-    sitePlanImage: body.sitePlanImage,
-    imageWidth: Number(body.imageWidth) || 0,
-    imageHeight: Number(body.imageHeight) || 0,
-  });
-  return NextResponse.json(property, { status: 201 });
+  try {
+    const property = await createProperty({
+      name: body.name,
+      address: body.address ?? "",
+      city: body.city ?? "",
+      glaSqft: Number(body.glaSqft) || 0,
+      sitePlanImage: body.sitePlanImage,
+      imageWidth: Number(body.imageWidth) || 0,
+      imageHeight: Number(body.imageHeight) || 0,
+    });
+    return NextResponse.json(property, { status: 201 });
+  } catch (e) {
+    console.error("POST /api/property failed:", e);
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : String(e) },
+      { status: 500 },
+    );
+  }
 }

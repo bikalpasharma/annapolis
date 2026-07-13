@@ -28,8 +28,16 @@ export async function PUT(
   if (body.slug !== slug) {
     return NextResponse.json({ error: "Slug mismatch" }, { status: 400 });
   }
-  const saved = await saveProperty(body);
-  return NextResponse.json(saved);
+  try {
+    const saved = await saveProperty(body);
+    return NextResponse.json(saved);
+  } catch (e) {
+    console.error("PUT /api/property/[slug] failed:", e);
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : String(e) },
+      { status: 500 },
+    );
+  }
 }
 
 export async function DELETE(
@@ -37,6 +45,14 @@ export async function DELETE(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
-  const deleted = await deleteProperty(slug);
-  return NextResponse.json({ deleted }, { status: deleted ? 200 : 404 });
+  try {
+    const deleted = await deleteProperty(slug);
+    return NextResponse.json({ deleted }, { status: deleted ? 200 : 404 });
+  } catch (e) {
+    console.error("DELETE /api/property/[slug] failed:", e);
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : String(e) },
+      { status: 500 },
+    );
+  }
 }
