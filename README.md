@@ -7,14 +7,13 @@ assumptions.
 ## Run it
 
 ```bash
-yarn install
-yarn dev
+npm install
+npm run dev
 # open http://localhost:3000
 ```
 
-> Uses Yarn with the `node-modules` linker (`.yarnrc.yml`), so `tsc` and the
-> VSCode TypeScript server resolve packages with no PnP editor SDK required.
-> Typecheck with `yarn tsc --noEmit`.
+Typecheck with `npx tsc --noEmit`. No env vars are needed for local dev — the
+app persists to `data/site.json` on disk (see **Persistence** below).
 
 | Page | Route |
 |------|-------|
@@ -74,7 +73,31 @@ src/components/SitePlanEditor.tsx       admin polygon editor
 public/siteplan-annapolis.png           site plan (page 4 of the PDF)
 ```
 
-> **Note:** the JSON file store is a stand-in for the CMS and persists on the
-> local filesystem (fine for local/dev). In production, content lives in the
-> headless CMS as described in the proposal.
+## Persistence
+
+The content layer ([src/lib/store.ts](src/lib/store.ts)) has two backends and
+picks automatically:
+
+- **Local dev** — reads/writes `data/site.json` on disk (zero infra).
+- **Vercel / production** — when the KV env vars are present it uses **Upstash
+  Redis / Vercel KV**, storing the whole document under one key. This is
+  required because Vercel's serverless filesystem is **read-only**, so the file
+  store cannot persist there.
+
+On first request against an empty Redis, the store seeds itself from the bundled
+`data/site.json`. Both `KV_REST_API_URL` + `KV_REST_API_TOKEN` (Vercel KV) and
+`UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (Upstash) are supported —
+see [.env.example](.env.example).
+
+> This JSON-document store is still a stand-in for the CMS. In production,
+> content lives in the headless CMS + MRI sync described in the proposal.
+
+## Deploy to Vercel
+
+1. Push to GitHub and import the repo in Vercel (framework auto-detected as
+   Next.js; build `next build`, install via npm).
+2. Add a KV store: **Storage → Upstash Redis** (or Vercel KV) and connect it to
+   the project — this injects `KV_REST_API_URL` / `KV_REST_API_TOKEN`.
+3. Redeploy. Without a KV store the site still builds and renders, but any
+   Save / Add / Delete returns a 500 (nothing to persist to).
 # annapolis
