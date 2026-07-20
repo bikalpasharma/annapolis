@@ -171,6 +171,13 @@ button {
   position: relative;
   width: 100%;
   background: #0e2c4b;
+  /* Shrink-wrap the image height instead of stretching to the grid row, so the
+     absolutely-positioned SVG overlay (inset:0) always covers exactly the image
+     box. Without this the grid stretches the stage to match the side panel and
+     the overlay — plus all click→pixel math — is scaled against the wrong
+     height, so boundaries drift (and differ between the editor and public
+     page, whose side panels differ in height). */
+  align-self: start;
 }
 .plan-stage img.plan-img {
   display: block;
